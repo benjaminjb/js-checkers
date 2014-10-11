@@ -1,15 +1,15 @@
-var board, currentPlayer, otherPlayer, enemyPieceJumped, winner, error_message, round, dead;
+var board, currentPlayer, otherPlayer, enemyPieceJumped, winner, round, dead;
 
 var resetBoard = function () {
   board = [
-    [' X ', ' X ', ' X ', 'wht', ' X ', 'wht', ' X ', 'wht'],
-    ['red', ' X ', 'wht', ' X ', 'wht', ' X ', 'wht', ' X '],
+    [' X ', 'wht', ' X ', 'wht', ' X ', 'wht', ' X ', 'wht'],
+    ['wht', ' X ', 'wht', ' X ', 'wht', ' X ', 'wht', ' X '],
     [' X ', 'wht', ' X ', 'wht', ' X ', 'wht', ' X ', 'wht'],
     [' X ', ' X ', ' X ', ' X ', ' X ', ' X ', ' X ', ' X '],
     [' X ', ' X ', ' X ', ' X ', ' X ', ' X ', ' X ', ' X '],
     ['red', ' X ', 'red', ' X ', 'red', ' X ', 'red', ' X '],
-    [' X ', 'wht', ' X ', 'red', ' X ', 'red', ' X ', 'red'],
-    [' X ', ' X ', 'red', ' X ', 'red', ' X ', 'red', ' X ']
+    [' X ', 'red', ' X ', 'red', ' X ', 'red', ' X ', 'red'],
+    ['red', ' X ', 'red', ' X ', 'red', ' X ', 'red', ' X ']
   ];
 
   currentPlayer = 'wht';
@@ -20,14 +20,13 @@ var resetBoard = function () {
     red: 0 
   };
   winner = null;
-  error_message = null;
   round = "0\u21D1";
 };
 
 var attemptMove = function (row1, col1, row2, col2) {
   if ((checkOrigin(row1,col1))
     && (checkDestination(row2,col2))
-    && (checkDirection(row1, row2))
+    && ((king(row1, col1)) || (checkDirection(row1, row2)) )
     && (checkDistance(row1, col1, row2, col2))) 
   {
     makeMove(row1, col1, row2, col2);
@@ -36,15 +35,13 @@ var attemptMove = function (row1, col1, row2, col2) {
       rowRemover = enemyPieceJumped.pop()
       removePiece(rowRemover,colRemover);
     }
-    round = updateRound(round);
+    
   }
-  $(document).trigger('updateRound', round);
   $(document).trigger('boardChange');
 };
 
 var checkOrigin = function(row1,col1) {
-  if (board[row1][col1] !== currentPlayer) {
-    error_message = 'Pick a spot to start where you do have a piece';
+  if (board[row1][col1].toLowerCase() !== currentPlayer) {
     $(document).trigger('invalidMove', 'Pick a spot to start where you do have a piece');
     return false;
   } else {
@@ -54,27 +51,28 @@ var checkOrigin = function(row1,col1) {
 
 var checkDestination = function(row2,col2) {
   if (board[row2][col2] !== ' X ') {
-    error_message = 'Pick a spot to end that is empty';
-    $(document).trigger('invalidMove', error_message);
+    $(document).trigger('invalidMove', 'Pick a spot to end that is empty');
     return false;
   } else {
     return true;
   } 
 };
 
+var king = function(row,col) {
+  return (board[row][col] === currentPlayer.toUpperCase());
+};
+
 var checkDirection = function(row1,row2) {
   if (( currentPlayer === 'red' ) 
-    && ( row2 > row1 ))
+    && (row2 > row1))
   {
-    error_message = 'Go the other direction';
-    $(document).trigger('invalidMove', error_message);
+    $(document).trigger('invalidMove', 'Go the other direction');
     return false;
   }
   else if (( currentPlayer === 'wht' ) 
-    && ( row2 < row1 )) 
+    && (row2 < row1) ) 
   {
-    error_message = 'Go the other direction';
-    $(document).trigger('invalidMove', error_message);
+    $(document).trigger('invalidMove', 'Go the other direction');
     return false;
   }
   else {
@@ -96,7 +94,7 @@ var checkDistance = function(row1, col1, row2, col2) {
   //   && ((coljump===0) || (coljump===4))) {
   //   return true;
   } else {
-    error_message = 'You tried to move too many spaces';
+    $(document).trigger('invalidMove', 'You tried to move too many spaces');
     return false;
   }
 };
@@ -127,9 +125,21 @@ var enemyJumped = function(row1, col1, row2, col2) {
 };
 
 var makeMove = function (row1, col1, row2, col2) {
+  var piece = kingMe(board[row1][col1], row2); 
   board[row1][col1] = ' X ';
-  board[row2][col2] = currentPlayer;
+  board[row2][col2] = piece;
   swap(currentPlayer,otherPlayer);
+};
+
+var kingMe = function(piece,endingRow) {
+  if ((piece === 'red') && (endingRow == 1)) {
+    return 'RED';
+  } else if ((piece === 'wht') && (endingRow == 7)) {
+    return 'WHT';
+  }
+  else {
+    return piece;
+  }
 };
 
 var swap = function() {
@@ -148,7 +158,7 @@ var removePiece = function (row, col) {
   $(document).trigger('pieceTaken', [currentPlayer, row, col]);
   if ((dead.red === 12) || (dead.white === 12)) {
     winner = otherPlayer;
-    $(document).trigger('winnerNamed', winner);
+    $(document).trigger('winnerNamed', otherPlayer);
   }
 };
 
@@ -160,4 +170,9 @@ var updateRound = function(rounded) {
     rounded = holder + '\u21D1';
   }
   return rounded;
+};
+
+var endRound = function() {
+  round = updateRound(round);
+  $(document).trigger('updateRound', round);
 };
