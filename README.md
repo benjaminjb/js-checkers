@@ -1,4 +1,4 @@
-# Note: the following ReadMe was the original text given by our instructors. I've preserved it to give an idea of what such an exercise consisted of.
+### Note: the following ReadMe was the original text given by our instructors. I've preserved it to give an idea of what such an exercise consisted of.
 
 # Goal
 
