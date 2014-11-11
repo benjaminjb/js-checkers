@@ -1,3 +1,5 @@
+# Note: the following ReadMe was the original text given by our instructors. I've preserved it to give an idea of what such an exercise consisted of.
+
 # Goal
 
 The goal of this application is to get a better understanding of how callbacks work. You will be using events/event handlers a lot more than you generally would in a real application. However, it's still important to practice this because it will help you understand the asynchronous nature of JavaScript.
